@@ -57,10 +57,19 @@ pipeline {
                                 when { branch 'main' }
                                 environment {
                                     DOCKER_HUB_CREDS = credentials('DockerHubToken')
+                                    IMG_SUFFIX = """${sh(
+                                        returnStdout: true,
+                                        script: '[ "jupyter-arm" == "$AGENT" ] && echo "-aarch64" || echo "-amd64"'
+                                    ).trim()}"""
                                 }
                                 steps {
-                                    sh 'skopeo copy containers-storage:localhost/$IMAGE_NAME docker://docker.io/ucsb/$IMAGE_NAME:latest --dest-username $DOCKER_HUB_CREDS_USR --dest-password $DOCKER_HUB_CREDS_PSW'
-                                    sh 'skopeo copy containers-storage:localhost/$IMAGE_NAME docker://docker.io/ucsb/$IMAGE_NAME:v$(date "+%Y%m%d") --dest-username $DOCKER_HUB_CREDS_USR --dest-password $DOCKER_HUB_CREDS_PSW'
+                                    sh 'skopeo copy containers-storage:localhost/$IMAGE_NAME docker://docker.io/ucsb/$IMAGE_NAME:latest${IMG_SUFFIX} --dest-username $DOCKER_HUB_CREDS_USR --dest-password $DOCKER_HUB_CREDS_PSW'
+                                    sh 'skopeo copy containers-storage:localhost/$IMAGE_NAME docker://docker.io/ucsb/$IMAGE_NAME:v$(date "+%Y%m%d")${IMG_SUFFIX} --dest-username $DOCKER_HUB_CREDS_USR --dest-password $DOCKER_HUB_CREDS_PSW'
+                                    sh 'podman manifest create localhost/$IMAGE_NAME:latest'
+                                    sh 'podman manifest add localhost/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:latest-aarch64'
+                                    sh 'podman manifest add localhost/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:latest-arm64'
+                                    sh 'podman manifest push localhost/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:latest --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW'
+                                    sh 'podman manifest push localhost/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:v$(date "+%Y%m%d") --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW'
                                 }
                                 post {
                                     always {
