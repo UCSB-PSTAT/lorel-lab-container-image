@@ -7,7 +7,7 @@ pipeline {
         IMAGE_NAME = 'lorel-lab'
     }
     stages {
-        stage(''){
+        stage('MultiArch Builds'){
             matrix {
                 axes {
                     axis {
