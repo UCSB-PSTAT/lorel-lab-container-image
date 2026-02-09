@@ -16,7 +16,7 @@ pipeline {
                     }
                 }
                 stages {
-                    stage("${AGENT}-Build-Test-Deploy") {
+                    stage('Build-Test-Deploy') {
                         agent {
                             label "${AGENT}"
                         }
