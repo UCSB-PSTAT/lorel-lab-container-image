@@ -68,8 +68,8 @@ pipeline {
                                     sh 'podman manifest create localhost/$IMAGE_NAME:latest'
                                     sh 'podman manifest add localhost/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:latest-aarch64'
                                     sh 'podman manifest add localhost/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:latest-arm64'
-                                    sh 'podman manifest push localhost/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:latest --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW'
-                                    sh 'podman manifest push localhost/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:v$(date "+%Y%m%d") --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW'
+                                    sh 'podman manifest push localhost/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:latest --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW --replace'
+                                    sh 'podman manifest push localhost/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:v$(date "+%Y%m%d") --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW --replace'
                                 }
                                 post {
                                     always {
