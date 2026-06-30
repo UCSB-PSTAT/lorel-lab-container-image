@@ -1,4 +1,4 @@
-FROM ucsb/scipy-base:latest
+FROM registry.cloud.college.ucsb.edu/ucsb/scipy-base:latest
 
 MAINTAINER LSIT Systems <lsitops@lsit.ucsb.edu>
 

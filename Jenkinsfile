@@ -5,6 +5,7 @@ pipeline {
     }
     environment {
         IMAGE_NAME = 'lorel-lab'
+        CONTAINER_REGISTRY  = 'registry.cloud.college.ucsb.edu'
     }
     stages {
         stage('MultiArch Builds') {
@@ -58,15 +59,15 @@ pipeline {
                             stage('Deploy') {
                                 when { branch 'main' }
                                 environment {
-                                    DOCKER_HUB_CREDS = credentials('DockerHubToken')
+                                    DOCKER_HUB_CREDS = credentials('harbor-registry-token')
                                     IMG_SUFFIX = """${sh(
                                         returnStdout: true,
                                         script: '[ "jupyter-arm" == "$AGENT" ] && echo "-aarch64" || echo "-amd64"'
                                     ).trim()}"""
                                 }
                                 steps {
-                                    sh 'skopeo copy containers-storage:localhost/$IMAGE_NAME docker://docker.io/ucsb/$IMAGE_NAME:latest${IMG_SUFFIX} --dest-username $DOCKER_HUB_CREDS_USR --dest-password $DOCKER_HUB_CREDS_PSW'
-                                    sh 'skopeo copy containers-storage:localhost/$IMAGE_NAME docker://docker.io/ucsb/$IMAGE_NAME:v$(date "+%Y%m%d")${IMG_SUFFIX} --dest-username $DOCKER_HUB_CREDS_USR --dest-password $DOCKER_HUB_CREDS_PSW'
+                                    sh 'skopeo copy containers-storage:localhost/$IMAGE_NAME docker://$CONTAINER_REGISTRY/ucsb/$IMAGE_NAME:latest${IMG_SUFFIX} --dest-username $DOCKER_HUB_CREDS_USR --dest-password $DOCKER_HUB_CREDS_PSW'
+                                    sh 'skopeo copy containers-storage:localhost/$IMAGE_NAME docker://$CONTAINER_REGISTRY/ucsb/$IMAGE_NAME:v$(date "+%Y%m%d")${IMG_SUFFIX} --dest-username $DOCKER_HUB_CREDS_USR --dest-password $DOCKER_HUB_CREDS_PSW'
                                 }
                                 post {
                                     always {
@@ -83,14 +84,14 @@ pipeline {
             when { branch 'main' }
             agent { label 'podman' }
             environment {
-                DOCKER_HUB_CREDS = credentials('DockerHubToken')
+                DOCKER_HUB_CREDS = credentials('harbor-registry-token')
             }
             steps {
                 sh 'podman manifest create ucsb/$IMAGE_NAME:latest'
-                sh 'podman manifest add ucsb/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:latest-aarch64 --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW'
-                sh 'podman manifest add ucsb/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:latest-amd64 --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW'
-                sh 'podman manifest push ucsb/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:latest --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW'
-                sh 'podman manifest push ucsb/$IMAGE_NAME:latest docker://docker.io/ucsb/$IMAGE_NAME:v$(date "+%Y%m%d") --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW'
+                sh 'podman manifest add ucsb/$IMAGE_NAME:latest docker://$CONTAINER_REGISTRY/ucsb/$IMAGE_NAME:latest-aarch64 --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW'
+                sh 'podman manifest add ucsb/$IMAGE_NAME:latest docker://$CONTAINER_REGISTRY/ucsb/$IMAGE_NAME:latest-amd64 --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW'
+                sh 'podman manifest push ucsb/$IMAGE_NAME:latest docker://$CONTAINER_REGISTRY/ucsb/$IMAGE_NAME:latest --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW'
+                sh 'podman manifest push ucsb/$IMAGE_NAME:latest docker://$CONTAINER_REGISTRY/ucsb/$IMAGE_NAME:v$(date "+%Y%m%d") --creds $DOCKER_HUB_CREDS_USR:$DOCKER_HUB_CREDS_PSW'
             }
             post {
                 always {
